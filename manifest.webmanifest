@@ -1,7 +1,7 @@
 {
   "name": "Atlas Quiz",
   "short_name": "Atlas Quiz",
-  "description": "Juego de preguntas de osteología: identifica cada estructura sobre la lámina.",
+  "description": "Juego de preguntas de anatomía: identifica cada hueso o músculo sobre la lámina.",
   "lang": "es",
   "start_url": "./",
   "scope": "./",
