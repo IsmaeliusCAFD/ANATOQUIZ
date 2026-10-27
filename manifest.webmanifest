@@ -1,6 +1,6 @@
 {
-  "name": "Atlas Quiz",
-  "short_name": "Atlas Quiz",
+  "name": "ANATOQUIZ",
+  "short_name": "ANATOQUIZ",
   "description": "Juego de preguntas de anatomía: identifica cada hueso o músculo sobre la lámina.",
   "lang": "es",
   "start_url": "./",
