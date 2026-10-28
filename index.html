@@ -109,6 +109,13 @@ figcaption{font-style:normal;font-weight:600}.tl{height:6px;border-radius:6px;ov
 .hwm{height:132px;width:auto;flex:none}.hwg{display:block;width:100%;margin:22px 0 0}
 .hwr{display:block;height:200px;width:auto;margin:0 auto 6px}.bye .hwr{height:220px;margin-bottom:0}
 .hwi{height:34px;width:auto;vertical-align:middle;margin-right:8px}.hwf{height:20px;width:auto;vertical-align:-4px;margin-left:4px}
+.scr{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:radial-gradient(circle at 50% 45%,#4a1408 0%,#12060a 55%,#000 100%);cursor:pointer;animation:scrBg .12s ease-out}
+.scr img{width:min(86vw,64vh);height:auto;filter:drop-shadow(0 0 40px #f08a3c);animation:scrPop .32s cubic-bezier(.2,2.2,.4,1) both,scrShake .5s .3s linear 2}
+.scr p{margin:0;color:#ffd9a8;font-weight:900;font-size:clamp(1.6rem,6vw,3rem);text-align:center;text-shadow:0 0 18px #f08a3c;letter-spacing:.02em;padding:0 16px}
+@keyframes scrBg{from{opacity:0}to{opacity:1}}
+@keyframes scrPop{from{transform:scale(.15) rotate(-8deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+@keyframes scrShake{0%,100%{transform:translate(0,0)}20%{transform:translate(-9px,5px) rotate(-1.5deg)}40%{transform:translate(8px,-6px) rotate(1.5deg)}60%{transform:translate(-6px,-4px)}80%{transform:translate(6px,6px)}}
+@media (prefers-reduced-motion:reduce){.scr,.scr img{animation:none!important}}
 @media(max-width:560px){.hwm{height:86px}.hwr{height:160px}:root[data-hw] body::before,:root[data-hw] body::after{width:96px;height:96px}}
 </style></head><body><div class="w" id="app"></div>
 <script>
@@ -146,6 +153,13 @@ const hwMas=()=>HW?`<span class=sp></span><img class=hwm src="${HWI}m-wave.webp"
 const hwGrave=()=>HW?`<img class=hwg src="${HWI}grave.webp" alt="">`:'';
 const hwRes=pc=>HW?`<img class=hwr src="${HWI}${pc>=80?'m-win':pc>=50?'m-ok':'m-low'}.webp" alt="">`:'';
 const hwFl=()=>HW&&streak>=3?`<img class=hwf src="${HWI}flame.webp" alt="">`:'';
+
+function scareSound(){try{const A=new(window.AudioContext||window.webkitAudioContext)(),t=A.currentTime,g=A.createGain();g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.28,t+.03);g.gain.exponentialRampToValueAtTime(.0001,t+.9);g.connect(A.destination);
+ const o=A.createOscillator();o.type='sawtooth';o.frequency.setValueAtTime(900,t);o.frequency.exponentialRampToValueAtTime(70,t+.8);o.connect(g);o.start(t);o.stop(t+.9);
+ const n=A.createBuffer(1,A.sampleRate*.35,A.sampleRate),d=n.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(1-i/d.length);const s=A.createBufferSource();s.buffer=n;s.connect(g);s.start(t);setTimeout(()=>A.close(),1200)}catch(e){}}
+function scare(){if(!HW||$('#scr'))return;const o=document.createElement('div');o.id='scr';o.className='scr';o.setAttribute('role','alert');
+ o.innerHTML=`<img src="${HWI}scream-${1+Math.floor(Math.random()*4)}.webp" alt=""><p>¡Falta «Músculo» delante!</p>`;document.body.appendChild(o);scareSound();
+ const x=()=>{clearTimeout(tm);o.remove()},tm=setTimeout(x,1700);o.onclick=x}
 function fbIcon(g){if(!HW)return;const f=$('#fb');if(!f)return;const i=new Image();i.src=HWI+(g?'good':'bad')+'.webp';i.className='hwi';i.alt='';f.prepend(i)}
 
 const sh=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
@@ -194,7 +208,8 @@ function answer(k){if(done)return;done=true;clearInterval(tmr);const q=Q[qi],goo
  document.querySelectorAll('.op').forEach(b=>{const n=+b.dataset.k;b.disabled=true;b.classList.add(n==q.a?'ok':n==k?'bad':'dim')});
  $('#fb').textContent=good?'Correcto.':k<0?'Se acabó el tiempo.':'Incorrecto: la respuesta era «'+q.o[q.a]+'».';
  $('#nx').innerHTML=`<button class=nxt id=next>${qi+1<Q.length?'Continuar →':'Ver informe'}</button>`;fbIcon(good)}
-const norm=s=>s.normalize('NFKD').replace(/\p{M}/gu,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim().replace(/\b(de el|del)\b/g,'de').replace(/^musculos? /,'');
+const DET=new Set(['de','del','la','las','el','los','un','una','en','vertebra','vertebras']);
+const norm=s=>s.normalize('NFKD').replace(/\p{M}/gu,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim().replace(/^musculos? /,'').replace(/\b([ctl]) (\d{1,2})\b/g,'$1$2').split(' ').filter(w=>w&&!DET.has(w)).join(' ');
 function lev(a,b){let p=Array.from({length:b.length+1},(_,j)=>j);for(let i=1;i<=a.length;i++){const c=[i];for(let j=1;j<=b.length;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]==b[j-1]?0:1));p=c}return p[b.length]}
 function forms(nm){const p=nm.split('/').map(s=>s.trim()),a=[nm,...p];
  if(/ de sacro$/.test(nm))p.forEach(s=>{const m=s.match(/^(\S+) (anterior|posterior) de sacro$/i);if(m){const ns=m[1].toLowerCase()=='foramen'?['foramen','foramenes']:[m[1],m[1]+'s'];ns.forEach(x=>[m[2],m[2]+'es'].forEach(y=>a.push(x+' '+y+' de sacro')))}});
@@ -203,16 +218,23 @@ function forms(nm){const p=nm.split('/').map(s=>s.trim()),a=[nm,...p];
  return a}
 const hasPref=u=>{const w=u.normalize('NFKD').replace(/\p{M}/gu,'').toLowerCase().trim().split(/\s+/)[0]||'';return lev(w,'musculo')<=1||lev(w,'musculos')<=1};
 let noPref=false;
-function judge(u){noPref=false;const x=norm(u);if(!x)return 0;const dd=DATA[Q[qi].i],alts=forms(dd.n).map(norm);
- if(dd.t=='Músculos'&&dd.n!='Diafragma'&&!hasPref(u)){noPref=alts.includes(x);return 0}
- if(alts.includes(x))return 2;if(DATA.some(d=>forms(d.n).some(f=>norm(f)==x)))return 0;return alts.some(a=>lev(x,a)<=(a.length<=4?0:a.length<=9?1:2))?1:0}
+const LAB=/^(c\d|t\d{1,2}|l\d|atlas|axis|toracic\w+|lumbar\w*)$/;
+const VL=d=>{if(d.c!='Vértebras')return[];const v=d.s;if(v.startsWith('C1'))return['c1','atlas'];if(v.startsWith('C2'))return['c2','axis'];if(/^C\d$/.test(v))return[v.toLowerCase()];if(v=='Torácicas')return[...Array(12)].map((_,i)=>'t'+(i+1)).concat(['toracica','toracicas','toracico','toracicos']);if(v=='Lumbares')return['l1','l2','l3','l4','l5','lumbar','lumbares'];return[]};
+const SC={};
+function accept(i){if(SC[i])return SC[i];const d=DATA[i],L=VL(d),S=new Set();
+ forms(d.n).forEach(f=>{const t=norm(f);if(!t)return;S.add(t);if(L.length){const b=t.split(' ').filter(w=>!LAB.test(w)).join(' ');if(b)L.forEach(l=>{S.add(b+' '+l);S.add(l+' '+b)})}});return SC[i]=[...S]}
+const labs=t=>t.split(' ').filter(w=>LAB.test(w)).sort().join();
+function judge(u){noPref=false;const x=norm(u);if(!x)return 0;const i=Q[qi].i,dd=DATA[i],A=accept(i);
+ if(dd.t=='Músculos'&&dd.n!='Diafragma'&&!hasPref(u)){noPref=A.includes(x);return 0}
+ if(A.includes(x))return 2;if(DATA.some((_,j)=>accept(j).includes(x)))return 0;
+ const lx=labs(x);return A.some(a=>labs(a)==lx&&lev(x,a)<=(a.length<=4?0:a.length<=9?1:2))?1:0}
 function submit(timeout){if(done)return;const u=$('#ans').value;if(!u.trim()&&!timeout){$('#ans').focus();return}finishT(judge(u),u,timeout)}
-function skipQ(){if(!done)finishT(0,'',false)}
+function skipQ(){if(!done){noPref=false;finishT(0,'',false)}}
 function finishT(j,u,timeout){done=true;clearInterval(tmr);const q=Q[qi],nm=DATA[q.i].n,good=j>0;res[qi]=good;ua[q.i]=u.trim();
  if(good){ok++;streak=hu?0:streak+1}else{streak=0;fails.push(q.i)}
  const a=$('#ans');a.disabled=true;a.classList.add(good?'ok':'bad');['chk','hint','skip'].forEach(id=>$('#'+id).disabled=true);
  $('#fb').textContent=good?(j==2?'Correcto.':'Casi: se escribe «'+nm+'». Lo damos por bueno.')+(hu?' (con pista)':''):(timeout&&!u.trim()?'Se acabó el tiempo. ':noPref?'Incorrecto: falta «Músculo» delante. ':'Incorrecto. ')+'Era «'+nm+'».';
- $('#nx').innerHTML=`<button class=nxt id=next>${qi+1<Q.length?'Continuar →':'Ver informe'}</button>`;$('#next').focus();fbIcon(good)}
+ $('#nx').innerHTML=`<button class=nxt id=next>${qi+1<Q.length?'Continuar →':'Ver informe'}</button>`;$('#next').focus();fbIcon(good);if(!good&&noPref&&u.trim())scare()}
 function runTimer(){clearInterval(tmr);if(!cfg.t||done)return;const E=cfg.m=='e';tmr=setInterval(()=>{const f=1-(performance.now()-t0)/1000/cfg.t;$('#bar').style.width=Math.max(f,0)*100+'%';if(f<=0)E?submit(true):answer(-1)},100)}
 function ask(){if($('#qd'))return;pauseT=performance.now();clearInterval(tmr);const o=document.createElement('div');o.id='qd';o.className='qd';
  o.innerHTML=`<div class=dlg role=dialog aria-modal=true aria-label="Salir"><h2>¿Salir de la partida?</h2><p>Si sales ahora perderás el progreso de esta partida.</p><button class=nxt data-q=stay>Seguir jugando</button><button class=btn data-q=menu>Volver al menú</button><button class=btn data-q=exit>⏻ Salir de la app</button></div>`;
@@ -248,7 +270,7 @@ function end(){const pc=Math.round(ok/Q.length*100);
  app.innerHTML=`<div class=res>${hwRes(pc)}<p class=kick>Informe de la sesión</p><p class=pct>${pc}%</p><p>${ok} aciertos de ${Q.length} · ${pc>=90?'Dominado.':pc>=60?'Buen nivel, afina los detalles.':'Toca repasar un poco más.'}</p>
  <div class=row style="justify-content:center"><button class=btn id=again>Repetir</button>${fails.length?'<button class=btn id=rev>Repasar fallos</button>':''}<button class=btn id=menu>Cambiar temario</button><button class=btn id=exit>⏻ Salir</button></div></div>
  ${fails.length?`<section class=pn><h2>Para repasar (${fails.length})</h2><p class=cnt style="margin:4px 0 6px">Toca una lámina para verla en grande.</p>${fails.map((i,k)=>`<div class=fl data-f=${k}><img src="${DATA[i].i}"><div><b>${DATA[i].n}</b><br><span class=cnt style="margin:0">${cap(DATA[i])}</span>${ua[i]?`<br><span class=cnt style="margin:0">Tu respuesta: «${esc(ua[i])}»</span>`:''}</div></div>`).join('')}</section>`:''}`}
-document.addEventListener('keydown',e=>{if($('#cr')){if(e.key=='Escape')closeCred();return}if($('#qd')){if(e.key=='Escape')closeAsk(true);return}const L=$('#lb');if(L){if(e.key=='Escape')L.remove();else if(e.key=='ArrowLeft')lb(li-1);else if(e.key=='ArrowRight')lb(li+1);return}
+document.addEventListener('keydown',e=>{if($('#scr')){$('#scr').remove();e.preventDefault();return}if($('#cr')){if(e.key=='Escape')closeCred();return}if($('#qd')){if(e.key=='Escape')closeAsk(true);return}const L=$('#lb');if(L){if(e.key=='Escape')L.remove();else if(e.key=='ArrowLeft')lb(li-1);else if(e.key=='ArrowRight')lb(li+1);return}
  if(e.key=='Escape'&&Q&&$('.prog')&&!$('.pct')){ask();return}
  if(!Q||!$('.op'))return;const k='abcd1234'.indexOf(e.key.toLowerCase());
  if(k>=0&&!done)answer(k%4);else if((e.key=='Enter'||e.key==' ')&&done&&$('#next')){e.preventDefault();next()}});
