@@ -214,6 +214,7 @@ function lev(a,b){let p=Array.from({length:b.length+1},(_,j)=>j);for(let i=1;i<=
 function forms(nm){const p=nm.split('/').map(s=>s.trim()),a=[nm,...p];
  if(/ de sacro$/.test(nm))p.forEach(s=>{const m=s.match(/^(\S+) (anterior|posterior) de sacro$/i);if(m){const ns=m[1].toLowerCase()=='foramen'?['foramen','foramenes']:[m[1],m[1]+'s'];ns.forEach(x=>[m[2],m[2]+'es'].forEach(y=>a.push(x+' '+y+' de sacro')))}});
  {const m=nm.match(/^Agujero (anterior|posterior) de sacro/);if(m)['Agujero','Agujeros','Foramen','Foramenes'].forEach(x=>['sacro','sacros'].forEach(y=>[m[1],m[1]=='anterior'?'anteriores':'posteriores'].forEach(z=>a.push(x+' '+y+' '+z))))}
+ {const X={'Carillas articular superior sacro':['Carilla articular superior sacro','Carillas articulares superiores sacro','Carilla articular superior de sacro','Carillas articulares superiores de sacro'],'Conducto':['Conducto de sacro','Conducto sacro'],'Hiato':['Hiato de sacro','Hiato sacro']};if(X[nm])a.push(...X[nm])}
  if(/^Músculos intercostales (externos|internos)$/.test(nm))a.push(nm.replace('Músculos intercostales','Músculo intercostal').replace(/os$/,'o'));
  if(/^Carillas articulares (superiores|inferiores) de C2$/.test(nm))a.push(nm.replace('Carillas articulares','Carilla articular').replace(/es de C2$/,' de C2').replace('superior de','superior de'));
  return a}
