@@ -213,6 +213,7 @@ const norm=s=>s.normalize('NFKD').replace(/\p{M}/gu,'').toLowerCase().replace(/[
 function lev(a,b){let p=Array.from({length:b.length+1},(_,j)=>j);for(let i=1;i<=a.length;i++){const c=[i];for(let j=1;j<=b.length;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]==b[j-1]?0:1));p=c}return p[b.length]}
 function forms(nm){const p=nm.split('/').map(s=>s.trim()),a=[nm,...p];
  if(/ de sacro$/.test(nm))p.forEach(s=>{const m=s.match(/^(\S+) (anterior|posterior) de sacro$/i);if(m){const ns=m[1].toLowerCase()=='foramen'?['foramen','foramenes']:[m[1],m[1]+'s'];ns.forEach(x=>[m[2],m[2]+'es'].forEach(y=>a.push(x+' '+y+' de sacro')))}});
+ {const m=nm.match(/^Agujero (anterior|posterior) de sacro/);if(m)['Agujero','Agujeros','Foramen','Foramenes'].forEach(x=>['sacro','sacros'].forEach(y=>[m[1],m[1]=='anterior'?'anteriores':'posteriores'].forEach(z=>a.push(x+' '+y+' '+z))))}
  if(/^Músculos intercostales (externos|internos)$/.test(nm))a.push(nm.replace('Músculos intercostales','Músculo intercostal').replace(/os$/,'o'));
  if(/^Carillas articulares (superiores|inferiores) de C2$/.test(nm))a.push(nm.replace('Carillas articulares','Carilla articular').replace(/es de C2$/,' de C2').replace('superior de','superior de'));
  return a}
