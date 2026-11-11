@@ -56,6 +56,7 @@ figcaption{font-size:.85rem;color:var(--mut);font-style:italic;margin-top:8px;te
 .dlg.cr{max-width:460px;max-height:88vh;overflow:auto;gap:6px}.dlg.cr p{margin:0 0 4px;color:inherit}.dlg.cr h3{margin:12px 0 2px;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}.dlg.cr ul{margin:0;padding-left:18px}.dlg.cr li{margin:2px 0}
 .who{display:flex;align-items:center;gap:14px}.who img{width:72px;height:72px;border-radius:18px;object-fit:cover;background:#f1e9d7;flex:none}.who h2{margin:0}.who p{color:var(--mut)!important}
 .bio{margin-top:6px!important}.dlg.cr .ver{color:var(--mut);font-size:.85rem}.lk{display:inline-block;background:var(--soft);color:var(--ink);padding:8px 14px;border-radius:999px;font-weight:700;text-decoration:none;margin:4px 6px 4px 0}.lk:hover{background:color-mix(in srgb,var(--ink) 15%,transparent)}
+.fcd{margin:0 0 16px;padding-bottom:14px;border-bottom:1px dashed var(--ln)}.fcd p{margin:4px 0;font-size:.95rem}.fcd .lnk{margin-top:6px;padding-left:0}
 .apc,.apb{display:flex;gap:12px;align-items:center;background:var(--soft);border-radius:20px;padding:12px 16px;text-align:left}.apc{margin:6px 0 10px}.apc h3{margin:0 0 4px}.apc p,.apb p{margin:0 0 8px;font-size:.95rem}.apm .mki{height:64px;margin:0}.apb{max-width:540px;margin:18px auto 0}.apb .pay{display:inline-block;padding:9px 16px;margin:0 10px 0 0;font-size:.95rem}.apb .lnk{margin-right:10px;font-size:.9rem}.pay{display:block;text-align:center;background:var(--ac);color:#fff;border-radius:16px;padding:13px;font-weight:700;text-decoration:none;margin-top:6px}.dlg.cr .nxt{margin-top:12px}
 .top{margin-top:6px}.top>.hd label{font-size:1.12rem;font-weight:800}.top>.bd{margin-left:8px}
 .fl{cursor:pointer}.fl:hover{background:color-mix(in srgb,var(--ln) 35%,transparent)}.fl::after{content:"🔍";margin-left:auto;opacity:.6}
@@ -198,16 +199,25 @@ try{const s=JSON.parse(localStorage.getItem('atlas')||'null');if(s){sel=new Set(
 cfg.m=cfg.m||'c';
 const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const save=()=>{try{localStorage.setItem('atlas',JSON.stringify({sel:[...sel],cfg,n:DATA.length}))}catch(e){}};
+const FK='fallos',FM=3;
+const fGet=()=>{try{const o=JSON.parse(localStorage.getItem(FK));return o&&typeof o=='object'?o:{}}catch(e){return{}}},fSet=o=>{try{localStorage.setItem(FK,JSON.stringify(o))}catch(e){}};
+function fRec(i,good){const o=fGet(),r=o[i]||{f:0,a:0,r:0,t:0};r.a++;r.t=Date.now();if(good)r.r++;else{r.f++;r.r=0}o[i]=r;fSet(o)}
+const fPend=()=>{const o=fGet();return Object.keys(o).map(Number).filter(i=>DATA[i]&&o[i].f>0&&o[i].r<FM).sort((a,b)=>o[b].f-o[a].f||o[b].t-o[a].t)};
+function fSel(){const o=fGet(),P=fPend(),n=cfg.n,out=[];let k=0;while(k<P.length&&out.length<n){let j=k;while(j<P.length&&o[P[j]].f==o[P[k]].f)j++;out.push(...sh(P.slice(k,j)));k=j}return out.slice(0,n)}
 const lab=d=>d.t=='Músculos'?'Músculos · '+d.c:(d.s?d.c+' · '+d.s:d.c);
 const cap=d=>lab(d)+(d.v?' · '+d.v:'');
 function tree(){const T=[];DATA.forEach((d,i)=>{let g=T.find(x=>x.l==d.t);if(!g)T.push(g={l:d.t,ids:[],k:[]});g.ids.push(i);let c=g.k.find(x=>x.l==d.c);if(!c)g.k.push(c={l:d.c,ids:[],k:[]});c.ids.push(i);if(d.s){let k=c.k.find(x=>x.l==d.s);if(!k)c.k.push(k={l:d.s,ids:[]});k.ids.push(i)}});return T}
 const item=i=>`<div class="nd it"><div class=hd><button class=tg disabled>▶</button><label><input type=checkbox class=cb data-ids="${i}">${DATA[i].n}<span class=cnt style="font-style:italic">${DATA[i].v}</span></label></div></div>`;
 const node=(l,ids,kids,c)=>`<div class="nd ${c||''}"><div class=hd><button class=tg>▶</button><label><input type=checkbox class=cb data-ids="${ids}">${l}<span class=cnt></span></label></div><div class=bd>${kids}</div></div>`;
+function fCard(){const n=fPend().length,t=Object.keys(fGet()).length;return `<div class=fcd><h2>Test de fallos</h2>${n?`<p>Tienes <b>${n}</b> lámina${n==1?'':'s'} pendiente${n==1?'':'s'} de repasar. El test elige las que más has fallado.</p><button class=go id=ft style="margin-top:8px">Test de fallos (${Math.min(n,cfg.n)})</button>`:`<p>${t?'¡Sin fallos pendientes! Has dominado todo lo que habías fallado.':'Aquí se irán guardando las láminas que falles para hacer un test solo con ellas.'}</p>`}${t?'<button class=lnk id=fv>Ver mis fallos</button>':''}</div>`}
+function fView(){const o=fGet(),P=fPend(),M=Object.keys(o).map(Number).filter(i=>DATA[i]&&o[i].f>0&&!P.includes(i)).sort((a,b)=>o[b].f-o[a].f);fails=[...P,...M];
+ const row=(i,k)=>`<div class=fl data-f=${k}><img src="${DATA[i].i}"><div><b>${DATA[i].n}</b><br><span class=cnt style="margin:0">${cap(DATA[i])}</span><br><span class=cnt style="margin:0">${o[i].f} fallo${o[i].f==1?'':'s'} · ${o[i].a} intento${o[i].a==1?'':'s'}${o[i].r>=FM?' · dominada ✓':o[i].r?' · '+o[i].r+' acierto'+(o[i].r==1?'':'s')+' seguido'+(o[i].r==1?'':'s'):''}</span></div></div>`;
+ app.innerHTML=`<div class=row><button class=btn id=menu>← Volver</button><span class=sp></span>${fails.length?'<button class=btn id=fclr>Borrar historial</button>':''}</div><section class=pn style="margin-top:12px"><h2>Mis fallos</h2><p class=cnt style="margin:4px 0 6px">Una lámina se da por dominada tras ${FM} aciertos seguidos. Toca una para verla en grande.</p>${P.length?`<h3 style="margin:14px 0 0">Pendientes (${P.length})</h3>${P.map((i,k)=>row(i,k)).join('')}`:'<p>No tienes fallos pendientes.</p>'}${M.length?`<h3 style="margin:18px 0 0">Dominadas (${M.length})</h3>${M.map((i,k)=>row(i,P.length+k)).join('')}`:''}</section>`}
 function menu(){
  app.innerHTML=`${hwTop()}<div class=row style="justify-content:flex-end;margin-bottom:6px">${hwTog()}${CRED_ON?'<button class=btn id=cred>ℹ Créditos</button>':''}<button class=btn id=exit>⏻ Salir</button></div><header class=brand><img class=logo src="${LG()}" alt="Logo de ANATOQUIZ"><div><p class=kick>Anatomía · Huesos y músculos</p><h1>ANATOQUIZ</h1></div>${hwMas()}</header><p class=sub>Identifica cada estructura sobre la lámina. Elige el temario que quieres repasar.</p>
  ${aviso()}<div class=grid><section class=pn><div class=row><h2>Temario</h2><span class=cnt id=tot></span><span class=sp></span><button class=btn id=all>Todo</button><button class=btn id=none>Nada</button></div>
  ${tree().map(g=>node(g.l,g.ids,g.k.map(c=>node(c.l,c.ids,c.k.length?c.k.map(k=>node(k.l,k.ids,k.ids.map(item).join(''))).join(''):c.ids.map(item).join(''),'cat')).join(''),'top open')).join('')}</section>
- <aside class=pn><h2>Modo de juego</h2><div class=pills>${[['c','Elegir respuesta'],['e','Escribir respuesta']].map(([m,l])=>`<button class="pill ${cfg.m==m?'on':''}" data-m=${m}>${l}</button>`).join('')}</div><h2>Ajustes</h2><div class=pills>${[10,20,30,999].map(n=>`<button class="pill ${cfg.n==n?'on':''}" data-n=${n}>${n==999?'Todas':n+' láminas'}</button>`).join('')}</div>
+ <aside class=pn>${fCard()}<h2>Modo de juego</h2><div class=pills>${[['c','Elegir respuesta'],['e','Escribir respuesta']].map(([m,l])=>`<button class="pill ${cfg.m==m?'on':''}" data-m=${m}>${l}</button>`).join('')}</div><h2>Ajustes</h2><div class=pills>${[10,20,30,999].map(n=>`<button class="pill ${cfg.n==n?'on':''}" data-n=${n}>${n==999?'Todas':n+' láminas'}</button>`).join('')}</div>
  <h2>Tiempo por lámina</h2><div class=pills>${(cfg.m=='e'?[[0,'Sin límite'],[30,'30 s'],[60,'60 s']]:[[0,'Sin límite'],[15,'15 s'],[30,'30 s']]).map(([n,l])=>`<button class="pill ${cfg.t==n?'on':''}" data-t=${n}>${l}</button>`).join('')}</div>
  <button class=go id=go>Empezar</button></aside></div>${credFooter()}${hwGrave()}`;upd()}
 function upd(){
@@ -218,7 +228,7 @@ app.addEventListener('click',e=>{const t=e.target;
  if(t.id=='avx'){AV_OFF=true;menu();return}if(t.id=='hwt'){hwSet(!HW);return}if(t.id=='all'){sel=new Set(DATA.map((_,i)=>i));upd()}if(t.id=='none'){sel.clear();upd()}
  if(t.dataset.m){cfg.m=t.dataset.m;cfg.t=0;menu()}if(t.id=='chk')submit();if(t.id=='hint')giveHint();if(t.id=='skip')skipQ();
  if(t.dataset.n){cfg.n=+t.dataset.n;menu()}if(t.dataset.t){cfg.t=+t.dataset.t;menu()}
- if(t.id=='go')start([...sel]);if(t.id=='cred'||t.dataset.cred!==undefined)openCred();if(t.id=='quit')ask();if(t.id=='exit')exitApp();if(t.id=='back')menu();if(t.id=='again')start(pool);if(t.id=='rev')start(fails);if(t.id=='menu')menu();if(t.id=='next')next();
+ if(t.id=='go')start([...sel]);if(t.id=='ft')start(fSel());if(t.id=='fv')fView();if(t.id=='fclr'){if(t.dataset.s){fSet({});fView()}else{t.dataset.s=1;t.textContent='¿Seguro? Pulsa otra vez'}}if(t.id=='cred'||t.dataset.cred!==undefined)openCred();if(t.id=='quit')ask();if(t.id=='exit')exitApp();if(t.id=='back')menu();if(t.id=='again')start(pool);if(t.id=='rev')start(fails);if(t.id=='menu')menu();if(t.id=='next')next();
  const f=t.closest('.fl');if(f)lb(+f.dataset.f);
  const o=t.closest('.op');if(o&&!o.disabled)answer(+o.dataset.k)});
 app.addEventListener('change',e=>{const b=e.target;if(!b.classList.contains('cb'))return;b.dataset.ids.split(',').forEach(i=>b.checked?sel.add(+i):sel.delete(+i));upd()});
@@ -233,7 +243,7 @@ function show(){const q=Q[qi],d=DATA[q.i],E=cfg.m=='e';done=false;hu=false;hs=0;
  <div><p class=qt>¿Qué estructura está señalada?</p>${E?`<input id=ans class=ans type=text name=respuesta-estructura placeholder="Escribe el nombre…" autocomplete=off autocapitalize=none autocorrect=off spellcheck=false inputmode=text enterkeyhint=done aria-autocomplete=none data-lpignore=true data-form-type=other><div class=row style="margin-top:10px"><button class=nxt id=chk>Comprobar</button><button class=btn id=hint>Pista</button><button class=btn id=skip>No lo sé</button></div><div class=hint id=hint2></div>`:`<ol class=opts>${q.o.map((o,k)=>`<li><button class=op data-k=${k}><span class=ltr>${'ABCD'[k]}</span>${o}</button></li>`).join('')}</ol>`}<div class=fb id=fb></div><div id=nx></div></div></div>`;
  clearInterval(tmr);t0=performance.now();runTimer();
  if(E){const a=$('#ans');a.focus();a.onkeydown=e=>{if(e.key=='Enter'){e.preventDefault();submit()}}}}
-function answer(k){if(done)return;done=true;clearInterval(tmr);const q=Q[qi],good=k==q.a;res[qi]=good;
+function answer(k){if(done)return;done=true;clearInterval(tmr);const q=Q[qi],good=k==q.a;res[qi]=good;fRec(q.i,good);
  if(good){ok++;streak++}else{streak=0;fails.push(q.i)}
  document.querySelectorAll('.op').forEach(b=>{const n=+b.dataset.k;b.disabled=true;b.classList.add(n==q.a?'ok':n==k?'bad':'dim')});
  $('#fb').textContent=good?'Correcto.':k<0?'Se acabó el tiempo.':'Incorrecto: la respuesta era «'+q.o[q.a]+'».';
@@ -266,7 +276,7 @@ function judge(u){noPref=false;const x=norm(u);if(!x)return 0;const i=Q[qi].i,dd
  const lx=labs(x);return A.some(a=>labs(a)==lx&&lev(x,a)<=(a.length<=4?0:a.length<=9?1:2))?1:0}
 function submit(timeout){if(done)return;const u=$('#ans').value;if(!u.trim()&&!timeout){$('#ans').focus();return}finishT(judge(u),u,timeout)}
 function skipQ(){if(!done){noPref=false;finishT(0,'',false)}}
-function finishT(j,u,timeout){done=true;clearInterval(tmr);const q=Q[qi],nm=DATA[q.i].n,good=j>0;res[qi]=good;ua[q.i]=u.trim();
+function finishT(j,u,timeout){done=true;clearInterval(tmr);const q=Q[qi],nm=DATA[q.i].n,good=j>0;res[qi]=good;fRec(q.i,good);ua[q.i]=u.trim();
  if(good){ok++;streak=hu?0:streak+1}else{streak=0;fails.push(q.i)}
  const a=$('#ans');a.disabled=true;a.classList.add(good?'ok':'bad');['chk','hint','skip'].forEach(id=>$('#'+id).disabled=true);
  $('#fb').textContent=good?(j==2?'Correcto.':'Casi: se escribe «'+nm+'». Lo damos por bueno.')+(hu?' (con pista)':''):(timeout&&!u.trim()?'Se acabó el tiempo. ':noPref?'Incorrecto: falta «Músculo» delante. ':'Incorrecto. ')+'Era «'+nm+'».';
